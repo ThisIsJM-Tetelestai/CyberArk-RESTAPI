@@ -1,0 +1,41 @@
+info:
+  name: Get-AuthToke-CyberArk
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: https://{{PVWA_Server_address}}/PasswordVault/API/auth/Cyberark/Logon/
+  body:
+    type: json
+    data: |-
+      {
+      "username":"{{user_name}}",
+      "password":"{{password}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // 1. Get the response body
+        let responseData = res.getBody();
+
+        // 2. If the API returns the string with literal quotes around it, strip them off
+        if (typeof responseData === 'string') {
+          responseData = responseData.replace(/^"|"$/g, '');
+        }
+
+        // 3. Save it to a variable
+        // Use bru.setVar() for a collection-level variable 
+        bru.setVar("AuthToken", responseData);
+
+        // Alternatively, use bru.setEnvVar() if you want to save it to your active Environment
+        // bru.setEnvVar("my_token", responseData);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
